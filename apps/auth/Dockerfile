@@ -8,6 +8,7 @@ COPY tsconfig.json tsconfig.json
 COPY nest-cli.json nest-cli.json
 
 # RUN npm i -g yarn
+RUN npm install -g @nestjs/cli
 RUN yarn
 
 COPY apps/auth apps/auth

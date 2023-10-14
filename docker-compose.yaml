@@ -48,7 +48,7 @@ services:
     volumes:
       - .:/Users/brian/Documents/programming/hackathon/med/api-server
   mysql:
-    image: arm64v8/mysql:latest
+    image: ${MYSQL_DOCKER_IMAGE}:latest
     command: --default-authentication-plugin=caching_sha2_password
     restart: always
     ports:
