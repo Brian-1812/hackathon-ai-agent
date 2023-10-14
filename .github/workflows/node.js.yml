@@ -27,6 +27,8 @@ jobs:
           cache-dependency-path: |
             yarn.lock
 
+      - run: yarn install
+
       - name: create env file
         env:
           COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
