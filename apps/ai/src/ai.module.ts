@@ -11,7 +11,8 @@ import * as Joi from 'joi';
     ConfigModule.forRoot({
       isGlobal: true,
       validationSchema: Joi.object({
-        PORT: Joi.number().required(),
+        TCP_PORT: Joi.number().required(),
+        HTTP_PORT: Joi.number().required(),
         COHERE_API_KEY: Joi.string().required(),
         OPENAI_API_KEY: Joi.string().required(),
         WEAVIATE_URL: Joi.string().required(),

@@ -1,16 +1,15 @@
-import { Column, Entity, ManyToOne } from 'typeorm';
+import { Column, Entity } from 'typeorm';
 import { AbstractEntity } from '../database';
-import { User } from './user.schema';
 
 @Entity()
 export class Query extends AbstractEntity<Query> {
-  @Column()
+  @Column({ type: 'longtext' })
   question: string;
 
-  @Column()
+  @Column({ type: 'longtext' })
   response: string;
 
-  @Column()
+  @Column({ type: 'longtext' })
   tags?: string;
 
   // @ManyToOne(() => User, (user) => user.queries)

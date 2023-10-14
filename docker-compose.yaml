@@ -9,6 +9,7 @@ services:
       - ./apps/ai/.env
     ports:
       - '3003:3003'
+      - '3005:3005'
     volumes:
       - .:/Users/brian/Documents/programming/hackathon/med/api-server
   auth:
