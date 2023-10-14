@@ -1,0 +1,92 @@
+# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: CI
+
+on:
+  push:
+    branches: ['main']
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+
+        with:
+          node-version: ${{ matrix.node_version }}
+          cache: 'yarn'
+          cache-dependency-path: |
+            yarn.lock
+
+      - name: create env file
+        env:
+          COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          WEAVIATE_URL: ${{ secrets.WEAVIATE_URL }}
+
+          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+          MYSQL_USER: ${{ secrets.MYSQL_USER }}
+          MYSQL_DB: ${{ secrets.MYSQL_DB }}
+
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+
+        run: |
+          touch .env
+          echo MYSQL_ROOT_PASSWORD="$MYSQL_PASSWORD" >> .env
+          echo MYSQL_DATABASE="$MYSQL_DB" >> .env
+
+          touch ./apps/ai/.env
+          echo PORT=3003 >> ./apps/ai/.env
+          echo COHERE_API_KEY="$COHERE_API_KEY" >> ./apps/ai/.env
+          echo OPENAI_API_KEY="$OPENAI_API_KEY" >> ./apps/ai/.env
+          echo WEAVIATE_URL="$WEAVIATE_URL" >> ./apps/ai/.env
+          echo WEAVIATE_SCHEME=http >> ./apps/ai/.env
+
+          touch ./apps/auth/.env
+          echo JWT_SECRET="$JWT_SECRET" >> ./apps/auth/.env
+          echo JWT_EXPIRATION=7200 >> ./apps/auth/.env
+          echo HTTP_PORT=3001 >> ./apps/auth/.env
+          echo TCP_PORT=3002 >> ./apps/auth/.env
+          echo MYSQL_HOST=mysql >> ./apps/auth/.env
+          echo MYSQL_PORT=3306 >> ./apps/auth/.env
+          echo MYSQL_USER="$MYSQL_USER" >> ./apps/auth/.env
+          echo MYSQL_PASSWORD="$MYSQL_PASSWORD" >> ./apps/auth/.env
+          echo MYSQL_DB="$MYSQL_DB" >> ./apps/auth/.env
+          echo MYSQL_SYNC=true >> ./apps/auth/.env
+
+          touch ./apps/doctor/.env
+          echo PORT=3000 >> ./apps/doctor/.env
+          echo AUTH_HOST=auth >> ./apps/doctor/.env
+          echo AUTH_PORT=3002 >> ./apps/doctor/.env
+          echo AI_HOST=ai >> ./apps/doctor/.env
+          echo AI_PORT=3003 >> ./apps/doctor/.env
+          echo MYSQL_HOST=mysql >> ./apps/doctor/.env
+          echo MYSQL_PORT=3306 >> ./apps/doctor/.env
+          echo MYSQL_USER="$MYSQL_USER" >> ./apps/doctor/.env
+          echo MYSQL_PASSWORD="$MYSQL_PASSWORD" >> ./apps/doctor/.env
+          echo MYSQL_DB="$MYSQL_DB" >> ./apps/doctor/.env
+          echo MYSQL_SYNC=true >> ./apps/doctor/.env
+
+          echo "cat .env"
+          cat .env
+
+          echo "ls -la ."
+          ls -la .
+
+      - name: rsync deployments
+        uses: easingthemes/ssh-deploy@main
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          ARGS: '-rltgoDzvO --delete'
+          REMOTE_HOST: ${{ secrets.SSH_IP_ADDRESS }}
+          REMOTE_USER: root
+          TARGET: /root/api-server

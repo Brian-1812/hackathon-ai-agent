@@ -1,0 +1,84 @@
+services:
+  ai:
+    build:
+      context: .
+      dockerfile: ./apps/ai/Dockerfile
+      target: development
+    command: yarn start:dev ai
+    env_file:
+      - ./apps/ai/.env
+    ports:
+      - '3003:3003'
+    volumes:
+      - .:/Users/brian/Documents/programming/hackathon/med/api-server
+  auth:
+    build:
+      context: .
+      dockerfile: ./apps/auth/Dockerfile
+      target: development
+    command: yarn start:dev auth
+    env_file:
+      - ./apps/auth/.env
+    ports:
+      - '3001:3001'
+    volumes:
+      - .:/Users/brian/Documents/programming/hackathon/med/api-server
+    depends_on:
+      - mysql
+  doctor:
+    build:
+      context: .
+      dockerfile: ./apps/doctor/Dockerfile
+      target: development
+    command: yarn start:dev doctor
+    env_file:
+      - ./apps/doctor/.env
+    ports:
+      - '3000:3000'
+    volumes:
+      - .:/Users/brian/Documents/programming/hackathon/med/api-server
+  patient:
+    build:
+      context: .
+      dockerfile: ./apps/patient/Dockerfile
+      target: development
+    command: yarn start:dev patient
+    env_file:
+      - ./apps/patient/.env
+    volumes:
+      - .:/Users/brian/Documents/programming/hackathon/med/api-server
+  mysql:
+    image: arm64v8/mysql:latest
+    command: --default-authentication-plugin=caching_sha2_password
+    restart: always
+    ports:
+      - '3306:3306'
+    expose:
+      - 3306
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+  weaviate:
+    command:
+      - --host
+      - 0.0.0.0
+      - --port
+      - '8080'
+      - --scheme
+      - http
+    image: semitechnologies/weaviate:1.21.3
+    ports:
+      - 8080:8080
+    volumes:
+      - weaviate_data:/var/lib/weaviate
+    restart: on-failure:0
+    environment:
+      QUERY_DEFAULTS_LIMIT: 25
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
+      PERSISTENCE_DATA_PATH: '/var/lib/weaviate'
+      DEFAULT_VECTORIZER_MODULE: 'none'
+      ENABLE_MODULES: ''
+      CLUSTER_HOSTNAME: 'node1'
+volumes:
+  weaviate_data:
+    driver: local
