@@ -138,12 +138,19 @@ export class AiService {
     return result?.docs?.results;
   }
 
-  async completeResponse(query: string, docs: Document<Record<string, any>>[]) {
+  async completeResponse(
+    query: string,
+    docs: { name: string; score: number }[],
+  ) {
     const prompt = `
     Talk and help the user politely and answer his queries based on the context provided here.
     List the possible illnesses that the user might have accurately with possible percentages based on the context if possible.
+    Also, list the score of the prediction in percentage among the possible illnesses.
     If there's no relationship between the user query and context, just say "I don't know".
-    \nCONTEXT: ${docs.map((d) => `${d.pageContent}\n`)}`;
+    \nCONTEXT: ${docs.map(
+      (d) => `${d.name}\nPrediction score: ${d.score}%\n\n`,
+    )}`;
+
     const content = `${query}`;
     const chatCompletion = await this.openai.chat.completions.create({
       messages: [
@@ -177,7 +184,13 @@ export class AiService {
       score: d?.relevance_score,
     }));
 
-    return { diseases: reranked, detectedLanguage };
+    const completedResponse = await this.completeResponse(text, reranked);
+
+    return {
+      diseases: reranked,
+      detectedLanguage,
+      responseText: completedResponse,
+    };
   }
 
   async translate(text: string, dest = 'en') {
