@@ -194,17 +194,29 @@ export class AiService {
     );
 
     const completedResponse =
-      'You might have these following illnesses, but please, talk to real professional doctors before making any desicion.';
+      'You might have these following illnesses, but please, talk to real professional doctors before making any decision.';
     const { text: responseTr } =
       detectedLanguage === 'en'
         ? { text: completedResponse }
-        : await this.translate(completedResponse, detectedLanguage);
-    const diseasesTr = await this.translateDocs(reranked, detectedLanguage);
+        : await this.translateGoogle(completedResponse, detectedLanguage);
+    const diseasesTr =
+      detectedLanguage === 'en'
+        ? reranked
+        : await this.translateDocs(reranked, detectedLanguage);
 
     return {
       diseases: diseasesTr,
       detectedLanguage,
       responseText: responseTr,
+    };
+  }
+
+  async translateGoogle(text: string, target = 'en') {
+    const responseA = await this.translatev2.translate(text, target);
+    return {
+      text: responseA[0],
+      detectedLanguage:
+        responseA[1]?.data?.translations?.[0]?.detectedSourceLanguage,
     };
   }
 
@@ -227,18 +239,19 @@ export class AiService {
   async translateDocs(docs: { name: string; score: number }[], dest = 'en') {
     const results = [];
     for (const doc of docs) {
-      let response = await fetch('http://fastapi:4001/translate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          text: doc.name,
-          targetLanguage: dest,
-        }),
-      });
-      const result = await response.json();
-      results.push({ ...doc, name: result?.text });
+      const res = await this.translateGoogle(doc.name, dest);
+      // let response = await fetch('http://fastapi:4001/translate', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //   },
+      //   body: JSON.stringify({
+      //     text: doc.name,
+      //     targetLanguage: dest,
+      //   }),
+      // });
+      // const result = await response.json();
+      results.push({ ...doc, name: res?.text });
     }
     return results;
   }

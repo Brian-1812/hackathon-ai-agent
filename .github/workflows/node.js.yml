@@ -57,6 +57,7 @@ jobs:
           echo OPENAI_API_KEY="$OPENAI_API_KEY" >> ./apps/ai/.env
           echo WEAVIATE_URL="$WEAVIATE_URL" >> ./apps/ai/.env
           echo WEAVIATE_SCHEME=http >> ./apps/ai/.env
+          echo GOOGLE_APPLICATION_CREDENTIALS="./apps/ai/service-account.json" >> ./apps/ai/.env
 
           touch ./apps/auth/.env
           echo JWT_SECRET="$JWT_SECRET" >> ./apps/auth/.env
