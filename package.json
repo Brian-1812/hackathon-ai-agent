@@ -20,6 +20,7 @@
     "test:e2e": "jest --config ./apps/api-server/test/jest-e2e.json"
   },
   "dependencies": {
+    "@faker-js/faker": "^8.1.0",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^3.1.1",
     "@nestjs/core": "^10.0.0",
@@ -33,6 +34,7 @@
     "class-validator": "^0.14.0",
     "cohere-ai": "^6.2.2",
     "cookie-parser": "^1.4.6",
+    "faker": "^6.6.6",
     "graphql": "^16.8.1",
     "joi": "^17.11.0",
     "langchain": "^0.0.167",

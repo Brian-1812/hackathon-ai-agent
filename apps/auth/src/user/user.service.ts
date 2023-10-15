@@ -22,6 +22,18 @@ export class UserService {
     return this.userRepository.create(userEntity);
   }
 
+  async createUsers(users: CreateUserDto[]) {
+    for (const user of users) {
+      await this.validateCreateUserDto(user);
+
+      const userEntity = new User({
+        ...user,
+        password: await bcrypt.hash(user.password, 10),
+      });
+      return this.userRepository.create(userEntity);
+    }
+  }
+
   private async validateCreateUserDto(user: CreateUserDto) {
     try {
       await this.userRepository.findOne({
