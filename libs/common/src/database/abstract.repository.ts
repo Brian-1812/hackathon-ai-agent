@@ -1,6 +1,14 @@
 import { Logger, NotFoundException } from '@nestjs/common';
 import { AbstractEntity } from './abstract.entity';
-import { EntityManager, FindOptionsWhere, Repository } from 'typeorm';
+import {
+  EntityManager,
+  EntityTarget,
+  FindOptionsRelationByString,
+  FindOptionsRelations,
+  FindOptionsWhere,
+  ObjectLiteral,
+  Repository,
+} from 'typeorm';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 
 export abstract class AbstractRepository<T extends AbstractEntity<T>> {
@@ -14,8 +22,18 @@ export abstract class AbstractRepository<T extends AbstractEntity<T>> {
     return this.entityManager.save(entity) as unknown as T;
   }
 
-  async findOne(where: FindOptionsWhere<T>): Promise<T> {
-    const entity = await this.entityRepository.findOne({ where });
+  async bulkInsert(
+    target: EntityTarget<T>,
+    entities: QueryDeepPartialEntity<ObjectLiteral extends T ? unknown : T>[],
+  ) {
+    return this.entityManager.insert(target, entities);
+  }
+
+  async findOne(
+    where: FindOptionsWhere<T>,
+    relations?: FindOptionsRelationByString | FindOptionsRelations<T>,
+  ): Promise<T> {
+    const entity = await this.entityRepository.findOne({ where, relations });
 
     if (!entity) {
       this.logger.warn('Entity not found with filter', where);
@@ -38,8 +56,11 @@ export abstract class AbstractRepository<T extends AbstractEntity<T>> {
     return this.findOne(where);
   }
 
-  async find(where: FindOptionsWhere<T>) {
-    return this.entityRepository.findBy(where);
+  async find(
+    where: FindOptionsWhere<T>,
+    relations?: FindOptionsRelationByString | FindOptionsRelations<T>,
+  ) {
+    return this.entityRepository.find({ where, relations });
   }
 
   async findOneAndDelete(where: FindOptionsWhere<T>) {

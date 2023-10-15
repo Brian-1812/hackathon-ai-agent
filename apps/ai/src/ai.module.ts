@@ -1,9 +1,9 @@
-import { Module } from '@nestjs/common';
-import { AiController } from './ai.controller';
-import { AiService } from './ai.service';
 import { LoggerModule } from '@app/common';
+import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
+import { AiController } from './ai.controller';
+import { AiService } from './ai.service';
 
 @Module({
   imports: [

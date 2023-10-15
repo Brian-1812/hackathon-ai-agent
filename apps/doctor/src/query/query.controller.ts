@@ -10,7 +10,6 @@ export class QueryController {
   @Post('query')
   async createUser(@Body() createQueryDto: CreateQueryDto) {
     const query = await this.queryService.createQuery(createQueryDto);
-    console.log('query', query);
     return query;
   }
 }

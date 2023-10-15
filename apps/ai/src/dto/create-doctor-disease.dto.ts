@@ -7,7 +7,7 @@ import {
 } from 'class-validator';
 import { WeaviateClassName } from '../types';
 
-export class CreateStoreDto {
+export class CreateDoctorDiseaseDto {
   @IsString()
   @IsOptional()
   name?: WeaviateClassName;
@@ -15,5 +15,5 @@ export class CreateStoreDto {
   @IsDefined()
   @IsArray()
   @IsNotEmpty()
-  data: { name: string; simptoms: string[] }[];
+  data: { title: string; description: string; id: number }[];
 }

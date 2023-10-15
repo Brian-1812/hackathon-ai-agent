@@ -56,6 +56,21 @@ services:
     depends_on:
       - mysql
       - weaviate
+  fastapi:
+    build:
+      context: .
+      dockerfile: ./fastapi/Dockerfile
+      # target: development
+    command: uvicorn app.main:app --proxy-headers --host 0.0.0.0 --port 4001
+    env_file:
+      - ./fastapi/.env
+    ports:
+      - '4001:4001'
+    volumes:
+      - .:/Users/brian/Documents/programming/hackathon/med/api-server
+    # depends_on:
+    #   - mysql
+    #   - weaviate
   mysql:
     image: ${MYSQL_DOCKER_IMAGE}:latest
     command: --default-authentication-plugin=caching_sha2_password

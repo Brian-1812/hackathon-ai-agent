@@ -47,6 +47,9 @@ jobs:
           echo MYSQL_DATABASE="$MYSQL_DB" >> .env
           echo MYSQL_DOCKER_IMAGE=mysql >> .env
 
+          touch ./fastapi/.env
+          echo COHERE_API_KEY="$COHERE_API_KEY" >> ./fastapi/.env
+
           touch ./apps/ai/.env
           echo TCP_PORT=3003 >> ./apps/ai/.env
           echo HTTP_PORT=3005 >> ./apps/ai/.env

@@ -1,6 +1,7 @@
-import { Column, Entity, OneToMany } from 'typeorm';
+import { Column, Entity, JoinTable, ManyToMany, OneToMany } from 'typeorm';
 import { AbstractEntity } from '../database';
 import { Query } from './query.schema';
+import { MedicineCategory } from './medicineCategory.schema';
 
 export enum UserRole {
   ADMIN = 'ADMIN',
@@ -28,6 +29,12 @@ export class User extends AbstractEntity<User> {
   @Column({ type: 'enum', enum: UserRole, default: UserRole.PATIENT })
   role: UserRole;
 
-  // @OneToMany(() => Query, (query) => query.user)
-  // queries: Query[];
+  @ManyToMany(() => MedicineCategory, (category) => category.users, {
+    eager: true,
+  })
+  @JoinTable({ name: 'UserCategory' })
+  categories: MedicineCategory[];
+
+  @OneToMany(() => Query, (query) => query.user)
+  queries: Query[];
 }

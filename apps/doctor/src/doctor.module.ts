@@ -1,17 +1,19 @@
-import { DatabaseModule, LoggerModule, User, Query } from '@app/common';
+import { LoggerModule } from '@app/common';
+import { AI_SERVICE, AUTH_SERVICE } from '@app/common/constants/services';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ClientsModule, Transport } from '@nestjs/microservices';
 import * as Joi from 'joi';
+import { CategoryModule } from './category/category.module';
 import { DoctorController } from './doctor.controller';
 import { DoctorService } from './doctor.service';
-import { ClientsModule, Transport } from '@nestjs/microservices';
-import { AUTH_SERVICE, AI_SERVICE } from '@app/common/constants/services';
 import { QueryModule } from './query/query.module';
 
 @Module({
   imports: [
     LoggerModule,
     QueryModule,
+    CategoryModule,
     ConfigModule.forRoot({
       isGlobal: true,
       validationSchema: Joi.object({
