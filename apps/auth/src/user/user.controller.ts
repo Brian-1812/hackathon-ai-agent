@@ -14,8 +14,8 @@ export class UserController {
     return this.userService.createUser(createUserDto);
   }
 
-  @Post()
-  createFakeUsers() {
+  @Post('fake')
+  async createFakeUsers() {
     const createUserDtos: CreateUserDto[] = [];
 
     for (let i = 0; i < 100; i++) {

@@ -20,26 +20,19 @@ export class QueryService {
     }
     return this.aiService.send('answer_query', { query }).pipe(
       map(
-        async (response: { diseases: { name: string; score: number }[] }) => {
+        async (response: {
+          diseases: { name: string; score: number }[];
+          responseText: string;
+        }) => {
           console.log('RESPONSE FROM TCP', response);
-          const resText = response.diseases.reduce(
-            (acc, currentValue) =>
-              acc +
-              currentValue.name +
-              '\n' +
-              'Percentage: ' +
-              (currentValue.score * 100).toFixed(3) +
-              '%\n',
-            '',
-          );
           const queryEntity = new Query({
             ...queryDto,
-            response: resText,
+            response: response.responseText,
             tags: queryDto.tags.join(','),
           });
           await this.queryRepository.create(queryEntity);
           return {
-            response: resText,
+            response: response.responseText,
             diseases: response.diseases.map((d) => ({
               ...d,
               score: (d.score * 100).toFixed(3),

@@ -7,11 +7,14 @@ import { WeaviateStore } from 'langchain/vectorstores/weaviate';
 import OpenAI from 'openai';
 import weaviate, { WeaviateClient } from 'weaviate-ts-client';
 import { WeaviateClassName } from './types';
+import { v2, v3beta1 } from '@google-cloud/translate';
 
 interface FormattedDoc {
   text: string;
   score: number;
 }
+
+const translateProjectId = 'mythic-emissary-398922';
 
 @Injectable()
 export class AiService {
@@ -19,6 +22,8 @@ export class AiService {
   weaviate: WeaviateClient | undefined = undefined;
   defaultClassName: WeaviateClassName = WeaviateClassName.Symptom_desease;
   openai: OpenAI = undefined;
+  translatev2 = undefined;
+  translationClient = undefined;
 
   constructor(private readonly configService: ConfigService) {
     this.init();
@@ -39,6 +44,8 @@ export class AiService {
       scheme: this.configService.get('WEAVIATE_SCHEME'),
       host: this.configService.get('WEAVIATE_URL'),
     });
+    this.translatev2 = new v2.Translate({ projectId: translateProjectId });
+    this.translationClient = new v3beta1.TranslationServiceClient();
   }
 
   async createStore(className: WeaviateClassName = this.defaultClassName) {
@@ -143,12 +150,10 @@ export class AiService {
     docs: { name: string; score: number }[],
   ) {
     const prompt = `
-    Talk and help the user politely and answer his queries based on the context provided here.
-    List the possible illnesses that the user might have accurately with possible percentages based on the context if possible.
-    Also, list the score of the prediction in percentage among the possible illnesses.
-    If there's no relationship between the user query and context, just say "I don't know".
+    Give a very short one sentence summary based on the ilnesses inside context and query provided.
+    List and Format the following diseases with their prediction score percentage as being the possible illness user might have.
     \nCONTEXT: ${docs.map(
-      (d) => `${d.name}\nPrediction score: ${d.score}%\n\n`,
+      (d) => `${d.name}\nPrediction score: ${d.score * 100}%\n\n`,
     )}`;
 
     const content = `${query}`;
@@ -178,18 +183,28 @@ export class AiService {
     const vectors = await this.vectorizeQuery(text);
     const docs = await this.searchHybrid(text, undefined, { vector: vectors });
     let reranked = await this.rerankDocs(text, docs);
-
     reranked = reranked.map((d) => ({
       name: this.extractDisease(d?.document?.text),
       score: d?.relevance_score,
     }));
 
-    const completedResponse = await this.completeResponse(text, reranked);
+    reranked = reranked.filter(
+      (value, index, self) =>
+        index === self.findIndex((t) => t.name === value.name),
+    );
+
+    const completedResponse =
+      'You might have these following illnesses, but please, talk to real professional doctors before making any desicion.';
+    const { text: responseTr } =
+      detectedLanguage === 'en'
+        ? { text: completedResponse }
+        : await this.translate(completedResponse, detectedLanguage);
+    const diseasesTr = await this.translateDocs(reranked, detectedLanguage);
 
     return {
-      diseases: reranked,
+      diseases: diseasesTr,
       detectedLanguage,
-      responseText: completedResponse,
+      responseText: responseTr,
     };
   }
 
@@ -207,6 +222,25 @@ export class AiService {
     const result = await response.json();
     console.log('TRANSLATION RESULT', result);
     return result as { text: string; detectedLanguage: string };
+  }
+
+  async translateDocs(docs: { name: string; score: number }[], dest = 'en') {
+    const results = [];
+    for (const doc of docs) {
+      let response = await fetch('http://fastapi:4001/translate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: doc.name,
+          targetLanguage: dest,
+        }),
+      });
+      const result = await response.json();
+      results.push({ ...doc, name: result?.text });
+    }
+    return results;
   }
 
   async findDoctors(disease: string) {

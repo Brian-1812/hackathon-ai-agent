@@ -30,8 +30,9 @@ export class UserService {
         ...user,
         password: await bcrypt.hash(user.password, 10),
       });
-      return this.userRepository.create(userEntity);
+      await this.userRepository.create(userEntity);
     }
+    return true;
   }
 
   private async validateCreateUserDto(user: CreateUserDto) {
