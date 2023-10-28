@@ -13,10 +13,4 @@ describe('AiController', () => {
 
     aiController = app.get<AiController>(AiController);
   });
-
-  describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(aiController.getHello()).toBe('Hello World!');
-    });
-  });
 });

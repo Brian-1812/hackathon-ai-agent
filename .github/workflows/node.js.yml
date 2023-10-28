@@ -34,13 +34,7 @@ jobs:
           COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           WEAVIATE_URL: ${{ secrets.WEAVIATE_URL }}
-
-          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
-          MYSQL_USER: ${{ secrets.MYSQL_USER }}
-          MYSQL_DB: ${{ secrets.MYSQL_DB }}
-
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-
+          SERPAPI_API_KEY: ${{ secrets.SERPAPI_API_KEY }}
         run: |
           touch .env
           echo MYSQL_ROOT_PASSWORD="$MYSQL_PASSWORD" >> .env
@@ -51,45 +45,13 @@ jobs:
           echo COHERE_API_KEY="$COHERE_API_KEY" >> ./fastapi/.env
 
           touch ./apps/ai/.env
-          echo TCP_PORT=3003 >> ./apps/ai/.env
-          echo HTTP_PORT=3005 >> ./apps/ai/.env
-          echo COHERE_API_KEY="$COHERE_API_KEY" >> ./apps/ai/.env
-          echo OPENAI_API_KEY="$OPENAI_API_KEY" >> ./apps/ai/.env
+          echo HTTP_PORT=3001 >> ./apps/ai/.env
           echo WEAVIATE_URL="$WEAVIATE_URL" >> ./apps/ai/.env
           echo WEAVIATE_SCHEME=http >> ./apps/ai/.env
-          echo GOOGLE_APPLICATION_CREDENTIALS="./apps/ai/service-account.json" >> ./apps/ai/.env
 
-          touch ./apps/auth/.env
-          echo JWT_SECRET="$JWT_SECRET" >> ./apps/auth/.env
-          echo JWT_EXPIRATION=7200 >> ./apps/auth/.env
-          echo HTTP_PORT=3001 >> ./apps/auth/.env
-          echo TCP_PORT=3002 >> ./apps/auth/.env
-          echo MYSQL_HOST=mysql >> ./apps/auth/.env
-          echo MYSQL_PORT=3306 >> ./apps/auth/.env
-          echo MYSQL_USER="$MYSQL_USER" >> ./apps/auth/.env
-          echo MYSQL_PASSWORD="$MYSQL_PASSWORD" >> ./apps/auth/.env
-          echo MYSQL_DB="$MYSQL_DB" >> ./apps/auth/.env
-          echo MYSQL_SYNC=true >> ./apps/auth/.env
-
-          touch ./apps/doctor/.env
-          echo PORT=3000 >> ./apps/doctor/.env
-          echo AUTH_HOST=auth >> ./apps/doctor/.env
-          echo AUTH_PORT=3002 >> ./apps/doctor/.env
-          echo AI_HOST=ai >> ./apps/doctor/.env
-          echo AI_PORT=3003 >> ./apps/doctor/.env
-          echo MYSQL_HOST=mysql >> ./apps/doctor/.env
-          echo MYSQL_PORT=3306 >> ./apps/doctor/.env
-          echo MYSQL_USER="$MYSQL_USER" >> ./apps/doctor/.env
-          echo MYSQL_PASSWORD="$MYSQL_PASSWORD" >> ./apps/doctor/.env
-          echo MYSQL_DB="$MYSQL_DB" >> ./apps/doctor/.env
-          echo MYSQL_SYNC=true >> ./apps/doctor/.env
-
-          touch ./apps/patient/.env
-          echo "cat .env"
-          cat .env
-
-          echo "ls -la ."
-          ls -la .
+          echo COHERE_API_KEY="$COHERE_API_KEY" >> ./apps/ai/.env
+          echo OPENAI_API_KEY="$OPENAI_API_KEY" >> ./apps/ai/.env
+          echo SERPAPI_API_KEY="$SERPAPI_API_KEY" >> ./apps/ai/.env
 
       - name: rsync deployments
         uses: easingthemes/ssh-deploy@main

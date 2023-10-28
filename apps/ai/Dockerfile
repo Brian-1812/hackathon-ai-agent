@@ -1,6 +1,8 @@
 FROM node:alpine As development
 
-WORKDIR /Users/brian/Documents/programming/hackathon/med/api-server
+#WORKDIR /Users/brian/Documents/programming/hackathon/med/api-server
+WORKDIR /project
+
 
 COPY package.json ./
 COPY yarn.lock ./

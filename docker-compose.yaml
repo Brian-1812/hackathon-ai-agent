@@ -8,80 +8,21 @@ services:
     env_file:
       - ./apps/ai/.env
     ports:
-      - '3003:3003'
-      - '3005:3005'
-    volumes:
-      - .:/Users/brian/Documents/programming/hackathon/med/api-server
-    depends_on:
-      - weaviate
-  auth:
-    build:
-      context: .
-      dockerfile: ./apps/auth/Dockerfile
-      target: development
-    command: yarn start:dev auth
-    env_file:
-      - ./apps/auth/.env
-    ports:
       - '3001:3001'
     volumes:
       - .:/Users/brian/Documents/programming/hackathon/med/api-server
     depends_on:
-      - mysql
-  doctor:
+      - weaviate
+  frontend:
     build:
-      context: .
-      dockerfile: ./apps/doctor/Dockerfile
+      context: ./frontend
+      dockerfile: ./Dockerfile
       target: development
-    command: yarn start:dev doctor
-    env_file:
-      - ./apps/doctor/.env
+    command: yarn start
     ports:
       - '3000:3000'
     volumes:
       - .:/Users/brian/Documents/programming/hackathon/med/api-server
-    depends_on:
-      - mysql
-      - weaviate
-  patient:
-    build:
-      context: .
-      dockerfile: ./apps/patient/Dockerfile
-      target: development
-    command: yarn start:dev patient
-    env_file:
-      - ./apps/patient/.env
-    volumes:
-      - .:/Users/brian/Documents/programming/hackathon/med/api-server
-    depends_on:
-      - mysql
-      - weaviate
-  fastapi:
-    build:
-      context: .
-      dockerfile: ./fastapi/Dockerfile
-      # target: development
-    command: uvicorn app.main:app --proxy-headers --host 0.0.0.0 --port 4001
-    env_file:
-      - ./fastapi/.env
-    ports:
-      - '4001:4001'
-    volumes:
-      - .:/Users/brian/Documents/programming/hackathon/med/api-server
-    # depends_on:
-    #   - mysql
-    #   - weaviate
-  mysql:
-    image: ${MYSQL_DOCKER_IMAGE}:latest
-    command: --default-authentication-plugin=caching_sha2_password
-    restart: always
-    ports:
-      - '3306:3306'
-    expose:
-      - 3306
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
   weaviate:
     command:
       - --host

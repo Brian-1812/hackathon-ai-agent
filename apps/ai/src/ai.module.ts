@@ -11,7 +11,6 @@ import { AiService } from './ai.service';
     ConfigModule.forRoot({
       isGlobal: true,
       validationSchema: Joi.object({
-        TCP_PORT: Joi.number().required(),
         HTTP_PORT: Joi.number().required(),
         COHERE_API_KEY: Joi.string().required(),
         OPENAI_API_KEY: Joi.string().required(),

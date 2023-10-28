@@ -1,86 +1,64 @@
+import { createStream } from '@app/common';
 import {
   Body,
   Controller,
   Post,
-  UsePipes,
-  ValidationPipe,
+  Res,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { Response } from 'express';
 import { AiService } from './ai.service';
-import { CreateQueryVectorDto } from './dto/create-query-vector.dto';
 import { CreateStoreDto } from './dto/create-store.dto';
-import { Document } from 'langchain/document';
-import { CreateDoctorDiseaseDto } from './dto/create-doctor-disease.dto';
-import { WeaviateClassName } from './types';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { toFile } from 'openai/uploads';
 
 @Controller()
 export class AiController {
   constructor(private readonly aiService: AiService) {}
 
-  @MessagePattern('create_query_vector')
-  @UsePipes(new ValidationPipe())
-  async createQueryVector(@Payload() data: CreateQueryVectorDto) {
-    return await this.aiService.vectorizeQuery(data.query);
+  @Post('chat')
+  async answerQuery(@Body() body: { query: string }, @Res() res: Response) {
+    const stream = createStream(this.aiService.chatFlow(body.query));
+    const reader = stream.getReader();
+    while (true) {
+      let { value, done } = await reader.read();
+      if (value?.content) {
+        res.write(JSON.stringify(value));
+      }
+      if (value?.type === 'response' || done) {
+        break;
+      }
+    }
+    res.end();
   }
 
-  @MessagePattern('answer_query')
-  @UsePipes(new ValidationPipe())
-  async answerQuery(@Payload() data: CreateQueryVectorDto) {
-    return await this.aiService.answerQuery(data.query);
-  }
-
-  @MessagePattern('category_vstore')
-  @UsePipes(new ValidationPipe())
-  async createCategoriesStore(@Payload() data: CreateDoctorDiseaseDto) {
-    console.log('data?.data', data?.data?.[0]);
-    const docs = data.data.map((cat) => {
-      return new Document({
-        pageContent: `Title: ${cat.title}. Description: ${cat.description}`,
-        metadata: {
-          categoryId: cat.id?.toString(),
-        },
-      });
-    });
-    return await this.aiService.createStoreFromDocs(
-      docs,
-      WeaviateClassName.Doctor_disease,
-    );
-  }
-
-  @MessagePattern('find_doctors')
-  @UsePipes(new ValidationPipe())
-  async findDoctors(@Payload() data: { disease: string }) {
-    return await this.aiService.findDoctors(data.disease);
-  }
-
-  @Post('store')
-  async createStore() {
-    return await this.aiService.createStore();
-  }
-
-  @Post('store/create')
-  async createStoreFromDocs(@Body() data: CreateStoreDto) {
-    const docs = data.data.map((item) => {
-      const doc = new Document({
-        pageContent: `Disease: ${item.name}. Symptoms: ${item.simptoms.join(
-          ',',
-        )}`,
-      });
-      return doc;
-    });
-    return await this.aiService.createStoreFromDocs(docs);
+  @Post('chat/audio')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadFile(
+    @UploadedFile() file: Express.Multer.File,
+    @Res() res: Response,
+  ) {
+    if (file) {
+      // Create FileLike type for uploading to OpenAI
+      const audio = await toFile(Buffer.from(file.buffer), 'audio.webm');
+      const stream = createStream(this.aiService.chatFlowAudio(audio));
+      const reader = stream.getReader();
+      while (true) {
+        let { value, done } = await reader.read();
+        if (value?.content) {
+          res.write(JSON.stringify(value));
+        }
+        if (value?.type === 'response' || done) {
+          break;
+        }
+      }
+      res.end();
+    }
   }
 
   @Post('store/add')
   async addIntoVectorStore(@Body() data: CreateStoreDto) {
-    const docs = data.data.map((item) => {
-      const doc = new Document({
-        pageContent: `Disease: ${item.name}. Symptoms: ${item.simptoms.join(
-          ',',
-        )}`,
-      });
-      return doc;
-    });
-    return await this.aiService.addDocsIntoStore(docs, data.name);
+    return await this.aiService.createStoreFromText(data.content);
   }
 }

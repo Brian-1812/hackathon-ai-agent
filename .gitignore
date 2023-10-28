@@ -26,6 +26,7 @@ lerna-debug.log*
 *.launch
 .settings/
 *.sublime-workspace
+frontend/node_modules
 
 # IDE - VSCode
 .vscode/*
@@ -37,3 +38,6 @@ lerna-debug.log*
 .env
 certs
 .vscode
+myenv
+fastapi
+service-account.json
