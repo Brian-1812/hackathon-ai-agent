@@ -2,6 +2,16 @@
 
 Multi-Functional AI Agent
 
+Tech Stack:
+NestJS (backend) / React (frontend)
+
+- GPT-4 / GPT-3.5 / Cohere AI
+- SerpAPI (web search)
+- Weaviate (vector db/embeddings)
+- Whisper (speech-to-text)
+- DALL-E (Image generation)
+
+
 ## Installation
 
 Make sure you have Docker (& Docker compose) installed
